@@ -1,0 +1,57 @@
+# To test the image using docker:
+# Build the image.
+# $ docker build -t webserver:1.0.0 . --file Dockerfile-prod
+# List the images.
+# $ docker image ls
+# To remove an image.
+# $ docker rmi <image-id>
+# To start a container.
+# $ docker run -d --name finances -p 8000:8000 webserver
+# To list all running containers.
+# $ docker ps
+# To stop a running container.
+# $ docker stop <container-id>
+# To run commands inside an image.
+# Alpine images provide the Almquist shell (ash) from BusyBox.
+# $ docker exec -it <container-id> ash
+# -------------------------------------------------------------------------------------------------
+# Use an offical golang image to create the binary.
+# Alpine images provide the Almquist shell (ash) from BusyBox.
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine-amd64 AS Builder
+
+# Create a working directory in the image.
+WORKDIR /cs
+
+COPY ./dnc-storage-cs/ ./
+
+# For more information about the 'dotnet restore' command, see
+# https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+RUN dotnet restore "./dnc-storage-cs.csproj" && \
+    # For more information about the 'dotnet build' command, see
+    # https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    dotnet build "./dnc-storage-cs.csproj" -c Release -o /app --no-restore && \
+    # For more information about .NET application publishing, see
+    # https://learn.microsoft.com/en-us/dotnet/core/deploying/ and
+    # https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+    dotnet publish "./dnc-storage-cs.csproj" -c Release -o /app --no-restore --runtime rhel-x64 && \
+    rm /app/*.pdb
+
+# Official images for the .NET runtime: https://hub.docker.com/_/microsoft-dotnet-runtime/
+# If using OpenShift, use the .NET Runtime image from RedHat at
+# https://catalog.redhat.com/software/containers/rhel8/dotnet-70-runtime/633c2b337a32f2ea2eb51dec
+# To pull the image from RedHat, see
+# https://access.redhat.com/RegistryAuthentication#red-hat-registries-1
+#
+# Final image.
+FROM registry.redhat.io/rhel8/dotnet-70-runtime:7.0-12
+
+WORKDIR /app
+
+# Copy the binary to the production image from the builder stage.
+COPY --from=Builder /app ./
+
+USER 1001:1001
+
+EXPOSE 8080
+
+ENTRYPOINT ["./dnc-storage-cs"]

@@ -1,0 +1,13 @@
+# Ignore everything.
+**
+
+# But include these files...
+!.dockerignore
+!.gitignore
+!Dockerfile-prod
+# ... and these files...
+!dnc-storage-cs/
+dnc-storage-cs/*
+!dnc-storage-cs/dnc-storage-cs.csproj
+!dnc-storage-cs/dnc-storage-cs.sln
+!dnc-storage-cs/Program.cs
