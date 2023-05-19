@@ -1,72 +1,67 @@
 ﻿//To interact with Amazon S3.
-using Amazon;
-using Amazon.Runtime.Internal;
+//using Amazon;
+//using Amazon.Runtime.Internal;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Util;
-using System;
+//using Amazon.S3.Transfer;
+//using Amazon.S3.Util;
+//using System;
 using System.Net;
-using System.Net.Sockets;
-using System.Runtime.Intrinsics.X86;
-using System.Security.AccessControl;
+//using System.Net.Sockets;
+//using System.Runtime.Intrinsics.X86;
+//using System.Security.AccessControl;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+//using System.Threading.Tasks;
+//using System.Xml.Serialization;
+//using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace storage
 {
   class Program
   {
-    static int/*async Task*/ Main(/*string[] args*/)
+    static int/*async Task*/ Main()
     {
       AmazonS3Client client;
       try
       {
-        /***
         string? ENDPOINT = Environment.GetEnvironmentVariable("ENDPOINT");
         if (string.IsNullOrEmpty(ENDPOINT))
         {
           Console.WriteLine("The environment variable ENDPOINT is missing.");
-          return;
-        }
-        string? API_KEY = Environment.GetEnvironmentVariable("API_KEY");
-        if (string.IsNullOrEmpty(API_KEY))
-        {
-          Console.WriteLine("The environment variable API_KEY is missing.");
-          return;
-        }
-        string? SERVICE_INSTANCE_ID = Environment.GetEnvironmentVariable("SERVICE_INSTANCE_ID");
-        if (string.IsNullOrEmpty(SERVICE_INSTANCE_ID))
-        {
-          Console.WriteLine("The environment variable SERVICE_INSTANCE_ID is missing.");
-          return;
+          return 0;
         }
         string? REGION = Environment.GetEnvironmentVariable("REGION");
         if (string.IsNullOrEmpty(REGION))
         {
           Console.WriteLine("The environment variable REGION is missing.");
-          return;
+          return 0;
         }
-        ***/
+        string? ACCESS_KEY_ID = Environment.GetEnvironmentVariable("ACCESS_KEY_ID");
+        if (string.IsNullOrEmpty(ACCESS_KEY_ID))
+        {
+          Console.WriteLine("The environment variable ACCESS_KEY_ID is missing.");
+          return 0;
+        }
+        string? SECRET_ACCESS_KEY = Environment.GetEnvironmentVariable("SECRET_ACCESS_KEY");
+        if (string.IsNullOrEmpty(SECRET_ACCESS_KEY))
+        {
+          Console.WriteLine("The environment variable SECRET_ACCESS_KEY is missing.");
+          return 0;
+        }
         //Initialize configuration.
         AmazonS3Config S3Config = new AmazonS3Config
         {
-          //    ServiceURL = ENDPOINT
-          //ServiceURL = "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints"
-          ServiceURL = "https://s3.us-east.cloud-object-storage.appdomain.cloud",
-          RegionEndpoint = RegionEndpoint.USEast1
+          ServiceURL = "https://s3.us-east.cloud-object-storage.appdomain.cloud"
         };
-        //  client = new AmazonS3Client(API_KEY, SERVICE_INSTANCE_ID, REGION, S3Config);
-        client = new AmazonS3Client("b4e1de4e02ca4248a3a305507a648e09", "73ec8154b72677b5d3f707bbc034825a593769756005a09b", S3Config);
+        client = new AmazonS3Client(ACCESS_KEY_ID, SECRET_ACCESS_KEY, S3Config);
         //
         string? PORT = Environment.GetEnvironmentVariable("PORT");
         if (string.IsNullOrEmpty(PORT))
         {
           PORT = "8080";
         }
-        //  string connectionUrl = $"http://*:{PORT}/";
-        string connectionUrl = "http://127.0.0.1:8001/";
+        string connectionUrl = $"http://*:{PORT}/";
+        // string connectionUrl = "http://127.0.0.1:8001/";
         Console.WriteLine($"Using {connectionUrl}");
         //PS> Invoke-WebRequest -URI http://127.0.0.1:8001/
         //PS> curl.exe localhost:8001
@@ -478,16 +473,14 @@ namespace storage
           string? bucket = query.Get("bucket");
           string? item = query.Get("item");
           string? path = query.Get("path");
-          string filePath = @$"{path}\{item}";
-          Stream input = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+          string filePath = @$"{path}/{item}";
+          using Stream input = new FileStream(filePath, FileMode.Open, FileAccess.Read);
           var request = new PutObjectRequest
           {
             BucketName = bucket,
             Key = item,
-            FilePath = path,
-            StorageClass = S3StorageClass.Standard,
-            CannedACL = S3CannedACL.NoACL,
-            //InputStream = input
+            CannedACL = S3CannedACL.PublicRead,
+            InputStream = input,
           };
           Console.WriteLine($"Uploading object: {bucket}:{item}");
           var response = await client.PutObjectAsync(request);
