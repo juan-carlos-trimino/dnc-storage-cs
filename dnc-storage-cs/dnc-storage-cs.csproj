@@ -5,7 +5,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-<!--    <RuntimeIdentifier>rhel-x64</RuntimeIdentifier> -->
+    <RuntimeIdentifier>rhel-x64</RuntimeIdentifier>
     <!-- <RootNamespace>dnc_storage_cs</RootNamespace> -->
   </PropertyGroup>
 
