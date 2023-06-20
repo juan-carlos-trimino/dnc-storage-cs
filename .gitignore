@@ -5,6 +5,7 @@
 !.dockerignore
 !.gitignore
 !Dockerfile-prod
+!README.md
 # ... and these files...
 !dnc-storage-cs/
 dnc-storage-cs/*
